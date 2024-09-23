@@ -1,7 +1,7 @@
 //===- PatternToCGRAPass.h - Pass performing the pattern matching for CGRA C++ -*-=//
 //===---------------------------------------------------------------------------===//
-#ifndef MLIR_PATTERN_TO_CGRAPASS_H_
-#define MLIR_PATTERN_TO_CGRAPASS_H_
+#ifndef MLIR_NONLINEAR_PATTERN_TO_CGRAPASS_H_
+#define MLIR_NONLINEAR_PATTERN_TO_CGRAPASS_H_
 
 #include "mlir/Support/LLVM.h"
 
@@ -15,9 +15,8 @@ template <typename T>
 class OperationPass;
 class Pass;
 
-std::unique_ptr<OperationPass<func::FuncOp>> createPatternToCGRAPass();
-// std::unique_ptr<OperationPass<func::FuncOp>> createNonlinearPatternToCGRAPass();
+std::unique_ptr<OperationPass<func::FuncOp>> createNonlinearPatternToCGRAPass();
 
 } // namespace mlir
 
-#endif // MLIR_PATTERN_TO_CGRAPASS_H_
+#endif // MLIR_NONLINEAR_PATTERN_TO_CGRAPASS_H_

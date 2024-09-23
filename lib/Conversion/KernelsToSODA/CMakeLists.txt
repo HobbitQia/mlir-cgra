@@ -11,9 +11,12 @@ add_mlir_conversion_library(SODAKERNELToSODA
   LinalgToCGRA.cpp
   LinalgToCGRAPass.cpp
  
+  NonlinearPatternToCGRA.cpp
+  NonlinearPatternToCGRAPass.cpp
+
   PatternToCGRA.cpp
   PatternToCGRAPass.cpp
- 
+
   AllToSODAPass.cpp
 
   ADDITIONAL_HEADER_DIRS

@@ -141,6 +141,7 @@ int main(int argc, char **argv) {
   mlir::soda::registerConvertLinalgGenericToSODAPass();
 
   // CGRA passes
+  mlir::soda::registerConvertNonlinearPatternToCGRAPass();
   mlir::soda::registerConvertPatternToCGRAPass();
   mlir::soda::registerConvertLinalgMatmulToCGRAPass();
   mlir::soda::registerConvertLinalgBatchMatmulToCGRAPass();

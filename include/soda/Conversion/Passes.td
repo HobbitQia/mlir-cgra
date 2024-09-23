@@ -99,6 +99,12 @@ def ConvertLinalgConvToCGRA : Pass<"convert-linalg-conv-to-cgra", "func::FuncOp"
   let dependentDialects = ["soda::SODADialect"];
 }
 
+def ConvertNonlinearPatternToCGRA: Pass<"convert-nonlinear-to-cgra", "func::FuncOp"> {
+  let summary = "Convert predefined nonlinear operations into single CGRA call";
+  let constructor = "mlir::createNonlinearPatternToCGRAPass()";
+  let dependentDialects = ["soda::SODADialect"];
+}
+
 def ConvertPatternToCGRA: Pass<"convert-pattern-to-cgra", "func::FuncOp"> {
   let summary = "Convert selected elementwise operation chain into single CGRA call";
   let constructor = "mlir::createPatternToCGRAPass()";
