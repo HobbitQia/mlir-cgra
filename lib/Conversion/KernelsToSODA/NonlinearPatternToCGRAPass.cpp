@@ -26,12 +26,8 @@ using namespace mlir;
 
 namespace {
 
-struct NonlinearOperationMapper : public ConvertPatternToCGRABase<NonlinearOperationMapper> {
+struct NonlinearOperationMapper : public ConvertNonlinearPatternToCGRABase<NonlinearOperationMapper> {
   NonlinearOperationMapper() = default;
-
-  NonlinearOperationMapper(ArrayRef<string> patterns) {
-    this->targetPatterns = patterns;
-  }
 
   void runOnInnerOp(scf::ForOp& forOp) {
 
@@ -65,8 +61,9 @@ struct NonlinearOperationMapper : public ConvertPatternToCGRABase<NonlinearOpera
     vector<vector<string>> Patterns;
     vector<string> softmax = {"index-index_cast-max-cmp-select", "sub", "exp", "add", "div"};
     vector<string> layernorm = {"add", "div", "", "sub", "mul", "add", "div", "trunc-add", "rsqrt", "", "mul", "mul", "add"};
-    Patterns.push_back(softmax); Patterns.push_back(layernorm);
-    vector<string> patternNames = {"softmax", "layernorm"};
+    vector<string> swiglu = {"neg-exp-add-div", "mul", "mul"};
+    Patterns.push_back(softmax); Patterns.push_back(layernorm); Patterns.push_back(swiglu);
+    vector<string> patternNames = {"softmax", "layernorm", "swiglu"};
     for (auto matchedPatterns : Patterns) {
       int size = matchedPatterns.size();
       for (Operation &now_op : llvm::make_early_inc_range(funcOp.getOps())) {
