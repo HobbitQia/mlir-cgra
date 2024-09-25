@@ -88,10 +88,10 @@ void NonlinearPatternToCGRAConverter::createLaunch(Operation *op) {
     if (arithOptName != "linalg.yield")
       arithOptNames.push_back(arithOptName);
   }
-  string patterns[5] = {"div-erf-add-mul-mul"};
-  string ops[5] = {"GELU"};
-  for (auto i: llvm::seq(0, 1)) {
-    std::cout << "pattern: " << patterns[i] << "\n";
+  string patterns[5] = {"div-erf-add-mul-mul", "cmp-select"};
+  string ops[5] = {"GELU", "RELU"};
+  for (auto i: llvm::seq(0, 2)) {
+    // std::cout << "pattern: " << patterns[i] << "\n";
     string pattern = patterns[i];
     string matchedPattern = getMatchedPattern(arithOptNames, pattern);
     if (matchedPattern != "") {
@@ -132,7 +132,7 @@ LogicalResult mlir::convertNonlinearPatternToCGRALaunch(Operation *op) {
 bool mlir::tryMatchedPattern(Operation *op, std::string pattern) {
   
   NonlinearPatternToCGRAConverter converter;
-  std::cout << "op: " << pattern << "\n";
+  // std::cout << "op: " << pattern << "\n";
   
   auto genericOp = dyn_cast<linalg::GenericOp>(op);
 
@@ -143,7 +143,7 @@ bool mlir::tryMatchedPattern(Operation *op, std::string pattern) {
   for (Operation &arithOp : llvm::make_early_inc_range(genericOp.getRegion().front().getOperations())) {
     string arithOptName = string(arithOp.getName().getStringRef());
     // ignore linalg.yield as it is not a computation
-    std::cout << "arithOpName: " << arithOptName << "\n";
+    // std::cout << "arithOpName: " << arithOptName << "\n";
     if (arithOptName != "linalg.yield")
       arithOptNames.push_back(arithOptName);
   }
@@ -151,7 +151,7 @@ bool mlir::tryMatchedPattern(Operation *op, std::string pattern) {
 
   {
     string matchedPattern = converter.getMatchedPattern(arithOptNames, pattern);
-    std::cout << "Matched pattern: " << matchedPattern << "\n";
+    // std::cout << "Matched pattern: " << matchedPattern << "\n";
     if (matchedPattern != "") {
       return true;
     }
@@ -173,11 +173,11 @@ Operation* mlir::Merge(Operation *op, Operation *st, Operation *ed, std::string 
   builder.setInsertionPointToEnd(&launchOp.body().front());
   builder.create<soda::TerminatorOp>(loc);
   builder.setInsertionPointToStart(&launchOp.body().front());
-  std::cout << "create launchOp\n";
-  std::cout << st_generic->getOperands().size() << " " << ed_generic->getOperands().size() << " ";
-  std::cout << genericOp->getOperands().size() << "\n";
-  std::cout << st_generic->getResults().size() << " " << ed_generic->getResults().size() << " ";
-  std::cout << genericOp->getResults().size() << "\n";
+  // std::cout << "create launchOp\n";
+  // std::cout << st_generic->getOperands().size() << " " << ed_generic->getOperands().size() << " ";
+  // std::cout << genericOp->getOperands().size() << "\n";
+  // std::cout << st_generic->getResults().size() << " " << ed_generic->getResults().size() << " ";
+  // std::cout << genericOp->getResults().size() << "\n";
   auto *newOp = Operation::create(
     genericOp->getLoc(), genericOp->getName(),
     // op(1) is unused.
@@ -187,7 +187,7 @@ Operation* mlir::Merge(Operation *op, Operation *st, Operation *ed, std::string 
   // for (auto region: regions) {
   //     newOp->getRegion().push_back(std::move(region));
   // }
-  std::cout << "create succesfully\n";
+  // std::cout << "create succesfully\n";
   launchOp->setAttr("pattern",
               StringAttr::get(builder.getContext(), pattern));
 

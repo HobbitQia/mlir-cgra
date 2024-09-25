@@ -47,26 +47,19 @@ struct NonlinearOperationMapper : public ConvertNonlinearPatternToCGRABase<Nonli
   void runOnOperation() override {
     auto funcOp = getOperation();
     
-    // deal with element-wise cases
-    for (Operation &op : llvm::make_early_inc_range(funcOp.getOps())) {
-      // if (op.getName().getStringRef() == targetPatterns) {
-      if (auto genericOp = dyn_cast<linalg::GenericOp>(&op)) {
-        if (failed(convertNonlinearPatternToCGRALaunch(&op)))
-          signalPassFailure();
-      } else if (auto forOp = dyn_cast<scf::ForOp>(&op)) {
-        runOnInnerOp(forOp);
-      }
-    }
-    // deal with mu
+    // deal with multiple loops cases
     vector<vector<string>> Patterns;
     vector<string> softmax = {"index-index_cast-max-cmp-select", "sub", "exp", "add", "div"};
     vector<string> layernorm = {"add", "div", "", "sub", "mul", "add", "div", "trunc-add", "rsqrt", "", "mul", "mul", "add"};
     vector<string> swiglu = {"neg-exp-add-div", "mul", "mul"};
-    Patterns.push_back(softmax); Patterns.push_back(layernorm); Patterns.push_back(swiglu);
-    vector<string> patternNames = {"softmax", "layernorm", "swiglu"};
+    vector<string> geglu = {"div-erf-add-mul-mul", "mul"};
+    Patterns.push_back(softmax); Patterns.push_back(layernorm); Patterns.push_back(swiglu); Patterns.push_back(geglu);
+    vector<string> patternNames = {"softmax", "layernorm", "swiglu", "geglu"};
+    // vector<string> patternNames = {"geglu"};
     for (auto matchedPatterns : Patterns) {
       int size = matchedPatterns.size();
-      for (Operation &now_op : llvm::make_early_inc_range(funcOp.getOps())) {
+      auto range = llvm::make_early_inc_range(funcOp.getOps());
+      for (Operation &now_op : range) {
         bool flag = true;
         int i = 0;
         Operation *op = &now_op;
@@ -93,17 +86,16 @@ struct NonlinearOperationMapper : public ConvertNonlinearPatternToCGRABase<Nonli
             }
             nextOp = op->getNextNode();
             if (flag && i == size) {
-              printf("NB\n");
+              // printf("NB\n");
               bool bj = false;
               Operation *newOp = Merge(start_op, st, ed, patternNames.front());
               for (auto tmp_op : tmp_locs) {
-                  printf("delete\n");
+                  // printf("delete\n");
                   auto a = newOp->getResults();
-                  printf("newOp %s %s\n", tmp_op->getResults(), a);
+                  // printf("newOp %s %s\n", tmp_op->getResults(), a);
                   tmp_op->replaceAllUsesWith(newOp);
                   // break;
                   tmp_op->erase();
-                
               }
               break;
             }
@@ -115,6 +107,18 @@ struct NonlinearOperationMapper : public ConvertNonlinearPatternToCGRABase<Nonli
         }
         patternNames.erase(patternNames.begin());
       }
+
+    // // deal with element-wise cases
+    for (Operation &op : llvm::make_early_inc_range(funcOp.getOps())) {
+      // if (op.getName().getStringRef() == targetPatterns) {
+      if (auto genericOp = dyn_cast<linalg::GenericOp>(&op)) {
+        if (failed(convertNonlinearPatternToCGRALaunch(&op)))
+          signalPassFailure();
+      } else if (auto forOp = dyn_cast<scf::ForOp>(&op)) {
+        runOnInnerOp(forOp);
+      }
+    }
+    
     }
 };
 
